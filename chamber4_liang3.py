@@ -31,24 +31,9 @@ def cal_elastance(tt,Tvcp,Tacp,Tarp,tac,tar,tao,T,c_type:str):
         elas = 0.001
         
     return elas
-    
-    C_matj2 = np.mat(np.zeros((L.shape[0],1)))
-    C_matj3 = np.mat(np.zeros((L.shape[0],1)))
-    
-    for i in range(0,L.shape[0]):
-        if i in valve:
-            C_matj2[i,0] = (vj[i,0]-vm[i,0])*cham_e[j,valve.index(i)]
-        else:
-            C_matj2[i,0] = (vj[i,0]-vm[i,0])/C[i]
-        if cc_in[i+7]<0:
-            C_matj3[i,0] = q6j-qj[cc_out[i+7],0]
-        else:
-            C_matj3[i,0] = qj[cc_in[i+7],0]-qj[cc_out[i+7],0]
-            
-    return C_matj2,C_matj3
 
 if __name__ =="__main__":
-    os.chdir(r'F:\linzhihong_doc\erke\python')
+    os.chdir(r'F:\erke\python')
     if(1):
         T = 0.8
         n_cycle = 25
@@ -285,6 +270,9 @@ if __name__ =="__main__":
             q5 = qj2[4,0]
             ## p6 and q6 are pressure and flow for the compartment representing CFD process
             ## p6 and q6 are solved at the last by weak copuling way.
+            ## for CFD, a pressure inlet and pressure outlet should be used.
+            ## because of the existence of capacitor c6, flow or velocity inlet can result in divergence.
+            ## if c6 is ignored, then a flow inlet can be used. 
             p6j2 = (q5-q6j)*dt/c6 + p6m
             q6j2 = ((p6j2-pj2[5,0])*dt+l6*q6m)/(r6*dt+l6)
             
