@@ -116,100 +116,6 @@ if __name__ =="__main__":
                 P[0,i] = V[0,i]/C[i]
         eps,ct,flag = 1,0,1
         
-    for j in range(1,1):
-        eps,ct,flag = 1,0,1
-        q6m = q6[j-1]
-        p6m = p6[j-1]
-        pjm = P[j-1,:].T
-        qjm = Q[j-1,:].T
-        vm = V[j-1,:].T
-        pj = copy.deepcopy(pjm)
-        qj = copy.deepcopy(qjm)
-        vj = copy.deepcopy(vm)
-        p6j = copy.deepcopy(p6m)
-        q6j = copy.deepcopy(q6m)
-        pj2 = copy.deepcopy(pjm)
-        
-        C_matj1 = np.mat(np.zeros((L.shape[0],1)))
-        C_matj2 = np.mat(np.zeros((L.shape[0],1)))
-        C_matj3 = np.mat(np.zeros((L.shape[0],1)))
-        C1_matj1 = np.mat(np.zeros((L.shape[0],1)))
-        C1_matj2 = np.mat(np.zeros((L.shape[0],1)))
-        C1_matj3 = np.mat(np.zeros((L.shape[0],1)))
-        while(flag):
- 
-            for i in range(0,L.shape[0]):
-                if qj[i,0]<0:
-                    qj[i,0] = 0
-                if cc_out[i]<0:
-                    C_matj1[i,0] = (pjm[cc_in[i],0]-p6m-R[i]*qjm[i,0])/L[i]
-                else:
-                    C_matj1[i,0] = (pjm[cc_in[i],0]-pjm[cc_out[i],0] - R[i]*qjm[i,0])/L[i]
-            
-            qj2 = qjm+ dt*C_matj1
-            
-            for i in range(0,L.shape[0]):
-                if qj2[i,0]<0:
-                    qj2[i,0] = 0
-                if cc_in[i+7]<0:
-                    C_matj3[i,0] = q6j-qj2[cc_out[i+7],0]
-                else:
-                    C_matj3[i,0] = qj2[cc_in[i+7],0]-qj2[cc_out[i+7],0]
-                
-            vj2 = vm + dt*C_matj3
-            
-            for i in range(0,L.shape[0]):
-                if i in valve:
-                    pj2[i,0] = vj2[i,0]*cham_e[j,valve.index(i)]
-                else:
-                    pj2[i,0] = (vj2[i,0]-vm[i,0])/C[i] + pjm[i,0]
-                    
-            
-            ####
-            for i in range(0,L.shape[0]):
-                if qj2[i,0]<0:
-                    qj2[i,0] = 0
-                if cc_out[i]<0:
-                    C1_matj1[i,0] = (pj2[cc_in[i],0]-p6j-R[i]*qj2[i,0])/L[i]
-                else:
-                    C1_matj1[i,0] = (pj2[cc_in[i],0]-pj2[cc_out[i],0] - R[i]*qj2[i,0])/L[i]
-            qj2 = qjm+ 0.5*dt*(C_matj1 + C1_matj1)
-            
-            for i in range(0,L.shape[0]):
-                if qj2[i,0]<0:
-                    qj2[i,0] = 0
-                if cc_in[i+7]<0:
-                    C1_matj3[i,0] = q6j-qj2[cc_out[i+7],0]
-                else:
-                    C1_matj3[i,0] = qj2[cc_in[i+7],0]-qj2[cc_out[i+7],0]
-                
-            vj2 = vm + dt*C1_matj3
-            
-            for i in range(0,L.shape[0]):
-                if i in valve:
-                    pj2[i,0] = vj2[i,0]*cham_e[j,valve.index(i)]
-                else:
-                    pj2[i,0] = (vj2[i,0]-vm[i,0])/C[i] + pjm[i,0]
-            
-            
-            q5 = qj2[4,0]
-            p6j2 = (q5-q6j)*dt/c6 + p6m
-            q6j2 = ((p6j2-pj2[5,0])*dt+l6*q6m)/(r6*dt+l6)
-            
-            eps = abs(p6j-p6j2)
-            ct = ct+1
-            if ct>30 or eps<0.0001:
-                flag=0
-            else:
-                p6j = 0.5*(p6j+p6j2)
-                q6j = 0.5*(q6j+q6j2)
-                
-        Q[j,:] =  qj2.T
-        P[j,:] =  pj2.T
-        V[j,:] = vj2.T
-        p6[j] = p6j2
-        q6[j] = q6j2
-        
     for j in range(1,len(t)):
         eps,ct,flag = 1,0,1
         q6m = q6[j-1]
@@ -252,6 +158,24 @@ if __name__ =="__main__":
                         qj2[i,0] = (dp*dt+L[i]*qjm[i,0]) / (L[i]+(R[i]+1000000)*dt)
                 else:
                     qj2[i,0] = (dp*dt+L[i]*qjm[i,0]) / (L[i]+R[i]*dt)
+            ##another way to block reverse flow        
+            #for i in range(0,L.shape[0]):
+            #    if cc_out[i]<0:
+            #        dp = pj[cc_in[i],0]-p6j
+            #    else:
+            #        dp = pj[cc_in[i],0]-pj[cc_out[i],0]
+            #    if i in valve:
+            #        if qj[i,0]>=0:
+            #            qj2[i,0] = (dp*dt+L[i]*qjm[i,0]) / (L[i]+R[i]*dt)
+            #        else:
+            #            qj2[i,0] = 0
+            #    else:
+            #        qj2[i,0] = (dp*dt+L[i]*qjm[i,0]) / (L[i]+R[i]*dt)
+            # have to set zero flow again
+            #for i in range(0,L.shape[0]):
+            #    if i in valve:
+            #        if qj2[i,0]<0:
+            #            qj2[i,0] = 0
             
             for i in range(0,L.shape[0]):
                 if cc_in[i+7]<0:
@@ -259,7 +183,6 @@ if __name__ =="__main__":
                 else:
                     dq = (qj2[cc_in[i+7],0]-qj2[cc_out[i+7],0] + qjm[cc_in[i+7],0]-qjm[cc_out[i+7],0])/2
                 vj2[i,0] = vm[i,0] + dt*dq
-            
             
             for i in range(0,L.shape[0]):
                 if i in valve:
